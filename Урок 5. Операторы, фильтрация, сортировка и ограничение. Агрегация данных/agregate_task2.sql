@@ -1,6 +1,8 @@
 /*Подсчитайте количество дней рождения, которые приходятся на каждый из дней недели. 
 Следует учесть, что необходимы дни недели текущего года, а не года рождения.*/
 
+ -- решение 1 через CASE
+
 SELECT
   CASE
   	dayofweek(date_add(birthday_at, interval (year(now()) - year(birthday_at)) year))
@@ -13,6 +15,16 @@ SELECT
     ELSE 'Saturday'
   END AS birthday,
   count(*) AS total
+FROM
+  Users
+GROUP BY birthday;
+
+
+-- решение 2 через DAYNAME
+
+SELECT
+  dayname(date_add(birthday_at, interval (year(now()) - year(birthday_at)) year)) as birthday,
+  count(*) as total
 FROM
   Users
 GROUP BY birthday;
