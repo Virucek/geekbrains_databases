@@ -6,6 +6,8 @@
 
  /*Пусть работа происходит с таблицей users*/
 
+/*Вариант 1. Решение одним запросом*/
+
 SET @date_start = '2018-08-01';
 SET @date_stop = '2018-08-31';  
   
@@ -24,4 +26,43 @@ left join
 	users as u on date_format(u.created_at, '%Y-%m-%d') = c.date
 group by c.date
 order by c.date
+;
+
+/* Вариант 2. 
+ * Решение через временную таблицу-календарь и процедуру
+ */
+
+
+delimiter //
+drop procedure if exists fillCalendar//
+create procedure fillCalendar (in startDate datetime, in endDate datetime)
+begin
+	
+	-- 
+	declare i int default 0;
+	declare j int default 0;
+	set i = datediff(endDate, startDate);	
+
+	while j <= i do
+		insert into temp values (date_format(date_add(startDate, interval j day), '%Y-%m-%d'));
+        set j = j + 1;
+    end while;
+end//
+
+delimiter ;
+drop table if exists temp;
+create temporary table temp (date_month date);
+call fillCalendar('2018-08-01', '2018-08-31'); 
+
+select
+   c.date_month,
+   case count(u.id)
+   		when 0 then 0
+   		else 1
+   	end as existing 
+from temp as c -- calendar table
+left join 
+	users as u on date_format(u.created_at, '%Y-%m-%d') = c.date_month
+group by c.date_month
+order by c.date_month
 ;
